@@ -10,7 +10,7 @@ class User(db.Model):
     userfavs_id = db.relationship('UserFavs')
 
     def __repr__(self):
-        return '<User %r>' % self.email
+        return '<User %r>' % self.username
 
     def serialize(self):
         return {
@@ -22,9 +22,18 @@ class User(db.Model):
 
 class UserFavs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    people_id = db.Column(db.Integer, unique=False)
-    planets_id = db.Column(db.Integer, unique=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    planets_id = db.relationship('Planets', lazy=True)
+    people_id = db.relationship('People', lazy=True)
+    def __repr__(self):
+        return '<UserFavs %r>' % self.id
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "planets": [Planet.serialize() for Planet in self.planets_id],
+            "people": [People.serialize() for People in self.people_id],
+        }
 
 
 class People(db.Model):
@@ -38,6 +47,7 @@ class People(db.Model):
     birth_year = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(200), nullable=False)
     homeworld = db.Column(db.String(200), nullable=False)
+    favorite_people = db.Column(db.Integer, db.ForeignKey(UserFavs.id))
 
     def __repr__(self):
         return '<People %r>' % self.name
@@ -67,8 +77,9 @@ class Planets(db.Model):
     diameter = db.Column(db.Integer, nullable=False)
     climate = db.Column(db.String(200), nullable=False)
     gravity = db.Column(db.String(200), nullable=False)
-    terrain = db.Column(db.Integer, nullable=False)
+    terrain = db.Column(db.String(200), nullable=False)
     population = db.Column(db.Integer, nullable=True)
+    favorite_planets = db.Column(db.Integer, db.ForeignKey(UserFavs.id))
 
     def __repr__(self):
         return '<Planets %r>' % self.name
