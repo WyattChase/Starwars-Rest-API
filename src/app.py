@@ -105,29 +105,76 @@ def get_user_favs(user_id):
 #ALL POST OPTIONS
 
 #User Favs
-@app.route('/users/<int:user_id>/favorites/planets/<int:planet_id>', methods=['POST'])
-def add_favorite_planet(user_id, planet_id):
-    user = User.query.get(user_id)
-    planet = Planets.query.get(planet_id)
+@app.route('/users/<int:user_id>/favorites/planets/<int:planets_id>', methods=['POST'])
+def add_favorite_planet(user_id, planets_id):
+    planet = UserFavs.query.filter_by(planets_id=planets_id, user_id=user_id).first()
+    if planet is None:
+        favplanet = Planets.query.filter_by(id=planets_id).first()
+        if favplanet is None:
+            return jsonify({'error': 'No such Planet exist'}), 404
 
-    if user is None or planet is None:
-        return jsonify({'error': 'User or planets not found'}), 404
+        else:
+            user = User.query.filter_by(id=user_id).first()
+
+            if user is None:
+                return jsonify({'error': 'No such User exist'}), 404
+            
+            else:
+                favplanets = UserFavs(user_id=user_id, planets_id=planets_id)
+                db.session.add(favplanets)
+                db.session.commit()
+                return jsonify({'msg': 'Planet has been added to Favorites!'}), 201
+        
+    else: 
+        return jsonify({'error': 'Planet is already added to Favs'}), 201
 
 
-    favplanet = UserFavs(user_id=user.id, planets_id=planet.id)
-    db.session.add(favplanet)
-    db.session.commit()
-    return jsonify(favplanet.serialize()), 201
-
-
-@app.route('/users/<int:user_id>/favorites/peoples/<int:people_id>', methods=['POST'])
+@app.route('/users/<int:user_id>/favorites/people/<int:people_id>', methods=['POST'])
 def add_favorite_people(user_id, people_id):
-    user = User.query.get(user_id)
-    people = People.query.get(people_id)
-    favpeople = people(user_id=user.id, people_id=people.id)
-    db.session.add(fav)
+    planet = UserFavs.query.filter_by(people_id=people_id, user_id=user_id).first()
+    if planet is None:
+        favperson = People.query.filter_by(id=people_id).first()
+        if favperson is None:
+            return jsonify({'error': 'No such Character exist'}), 404
+
+        else:
+            user = User.query.filter_by(id=user_id).first()
+
+            if user is None:
+                return jsonify({'error': 'No such User exist'}), 404
+            
+            else:
+                favpeople = UserFavs(user_id=user_id, people_id=people_id)
+                db.session.add(favpeople)
+                db.session.commit()
+                return jsonify({'msg': 'Character has been added to Favorites!'}), 201
+        
+    else: 
+        return jsonify({'error': 'Character is already added to Favs'}), 201
+
+# DELETING THE POSTED FAVS
+
+@app.route('/users/<int:user_id>/favorites/planets/<int:planets_id>', methods=['DELETE'])
+def delete_favorite_planet(user_id, planets_id):
+    planet = UserFavs.query.filter_by(planets_id=planets_id, user_id=user_id).first()
+    if planet is None:
+        return jsonify({'error': 'Planet not found in favorites'}), 404
+
+    db.session.delete(planet)
     db.session.commit()
-    return jsonify(favpeople.serialize()), 201
+    return jsonify({'msg': 'Planet has been removed from Favorites!'}), 200
+
+
+@app.route('/users/<int:user_id>/favorites/people/<int:people_id>', methods=['DELETE'])
+def delete_favorite_person(user_id, people_id):
+    people = UserFavs.query.filter_by(people_id=people_id, user_id=user_id).first()
+    if people is None:
+        return jsonify({'error': 'Character not found in favorites'}), 404
+
+    db.session.delete(people)
+    db.session.commit()
+    return jsonify({'msg': 'Character has been removed from Favorites!'}), 200
+
 
 
 

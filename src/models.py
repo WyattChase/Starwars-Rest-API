@@ -10,7 +10,7 @@ class User(db.Model):
     userfavs_id = db.relationship('UserFavs')
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User %r>' % self.id
 
     def serialize(self):
         return {
@@ -22,17 +22,21 @@ class User(db.Model):
 
 class UserFavs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    planets_id = db.relationship('Planets', lazy=True)
-    people_id = db.relationship('People', lazy=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    planets_id = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    planets = db.relationship('Planets', lazy=True)
+    people_id =db.Column(db.Integer, db.ForeignKey('people.id'))
+    people = db.relationship('People', lazy=True)
     def __repr__(self):
         return '<UserFavs %r>' % self.id
     def serialize(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "planets": [Planet.serialize() for Planet in self.planets_id],
-            "people": [People.serialize() for People in self.people_id],
+            "planets_id": self.planets_id,
+            "people_id": self.people_id,
+            #"planets": [Planet.serialize() for Planet in self.planets.id],
+            #"people": [People.serialize() for People in self.people.id],
         }
 
 
@@ -47,10 +51,9 @@ class People(db.Model):
     birth_year = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(200), nullable=False)
     homeworld = db.Column(db.String(200), nullable=False)
-    favorite_people = db.Column(db.Integer, db.ForeignKey(UserFavs.id))
 
     def __repr__(self):
-        return '<People %r>' % self.name
+        return '<People %r>' % self.id
 
     def serialize(self):
         return {
@@ -79,10 +82,9 @@ class Planets(db.Model):
     gravity = db.Column(db.String(200), nullable=False)
     terrain = db.Column(db.String(200), nullable=False)
     population = db.Column(db.Integer, nullable=True)
-    favorite_planets = db.Column(db.Integer, db.ForeignKey(UserFavs.id))
 
     def __repr__(self):
-        return '<Planets %r>' % self.name
+        return '<Planets %r>' % self.id
 
     def serialize(self):
         return {
